@@ -1,352 +1,91 @@
-/* .upload-container {
-    width: 50%;
-    margin: 0 auto;
-    padding: 10px;
-  }
- 
-  .inner-container {
-    display: flex;
-    justify-content: space-between;
-  }
- 
-  .container, .container1 {
-    width:45%;
-    margin-top: 30px;
-  }
- 
-  .full-height {
-    height: 80%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
- 
-  .file-drop-zone {
-    border: 2px dashed #3f51b5;
-    padding: 40px;
-    text-align: center;
-    color: #3f51b5;
-    cursor: pointer;
-    height: 25%;
-    font-family: 'roboto', sans-serif;
-    font-size: 18px;
-    transition: background-color 0.3s ease;
-  }
- 
-  .file-drop-zone:hover {
-    background-color: #f8f9fa;
-  }
- 
-  .upload-icon {
-    max-width: 100px;
-    margin-bottom: 10px;
-  }
- 
-  .mat-card-content h2 {
-    font-family: 'Arial', sans-serif;
-    font-size: 20px;
-    color: #343a40;
-    font-weight: bold;
-  }
- 
-  .mat-raised-button {
-    font-family: 'Arial', sans-serif;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
- 
-  .common-upload-section {
-    width: 100%;
-    margin-top: 20px;
-  }
- 
-  .mat-progress-bar {
-    height: 20px;
-    width: 100%;
-  }
- 
-  .mt-3 {
-    margin-top: 16px;
-  }
- 
-  .w-100 {
-    width: 100%;
-  }
-   */
-/*
-   body {
-    background-size: cover;
-    border-radius: 0%;
-    background-repeat: no-repeat;
-    font-weight: bold;
-    height: 550px;
-    /* background-image: url("https://imagetolink.com/ib/4chFA39Khj.jpg");
-    background-color: rgb(28, 0, 119);
-    color: rgb(255, 255, 255);
-    background-position: center;
-    margin: 0;
-    font-family: Roboto;
-  }
- 
-  .upload-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-  }
- 
-  .inner-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.3);
-  }
- 
-  .left-side {
-    width: 45%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-  }
- 
-  .right-side {
-    width: 50%;
-    height: 100vh;
-    overflow: auto;
-  }
- 
-  .container, .container1 {
-    width: 100%;
-    margin-top: 30px;
-    margin-left: 30px;
-  }
- 
-  .container1 {
-    width: 80%;
-    margin-top: 30px;
-    margin-left: 80px;
-    justify-content: center;
-    text-align: center;
-  }
- 
-  div {
-    height: 100%;
-  }
- 
-  .full-height {
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background-color: rgba(53, 137, 255, 0.2);  
-  }
- 
-  .file-drop-zone {
-    border: 2px dashed #79e7e9;
-    padding: 40px;
-    text-align: center;
-    color: #ffffff;
-    cursor: pointer;
-    height: auto;
-    font-family: 'roboto', sans-serif;
-    font-size: 18px;
-    transition: background-color 0.3s ease;
-    background-color: rgba(53, 137, 255, 0.2);
-  }
- 
-  .file-drop-zone:hover {
-    background-color: #c6edf1;
-    color: rgb(40, 0, 150);
-  }
- 
-  .upload-icon {
-    max-width: 100px;
-    margin-bottom: 10px;
-  }
- 
-  .mat-card-content h2 {
-    font-family: 'Arial', sans-serif;
-    font-size: 20px;
-    background-color: rgba(161, 160, 221, 0.8);
-    font-weight: bold;
-  }
- 
-  .mat-raised-button {
-    font-family: 'Arial', sans-serif;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
- 
-  .transparent-button {
-    background-color: rgba(53, 137, 255, 0.2) !important;
-    color: #ffffff !important;
-    border: 2px solid #00409a !important;
-  }
- 
-  .transparent-button:hover {
-    background-color: rgba(53, 137, 255, 0.3) !important;
-  }
- 
-  .common-upload-section {
-    width: 100%;
-    margin-top: 20px;
-    margin-left: 30px;
-    margin-right: 55px;
-  }
- 
-  .mat-progress-bar {
-    height: 20px;
-    width: 100%;
-  }
- 
-  .mt-3 {
-    margin-top: 16px;
-    margin-right: 40px;
-  }
- 
-  .w-100 {
-    width: 100%;
-    margin-left: 5px;
-  }
- 
-  .incident-toolbar {
-    background-color: #000e75;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    height: 30px;
-    font-weight: bold;
-  }
- 
-  .incident-toolbar1 {
-    background-color: #ffffff;
-    color: rgb(18, 0, 151);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px 20px;
-    height: 20px;
-    font-weight: bold;
-  }
- 
-  .incident-toolbar2 {
-    color: rgb(18, 0, 151);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 30px;
-    height: 20px;
-    font-weight: bold;
-    margin-left: 20px;
-  }
- 
-  .spacer {
-    flex: 1 1 auto;
-  }
- 
-  .user-info {
-    display: flex;
-    align-items: center;
-  }
- 
-  .user-avatar {
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    margin-right: 8px;
-  }
-   */
- 
- 
- 
- 
- 
-   
 /* Dark mode styles */
-body.dark-mode {
-  background: linear-gradient(to right, #000022, #000000, #000000, #000000);
-  color: #ffffff;
+
+.incident-toolbar {
+  background-color: #000872;
+  /* background: linear-gradient(to right, #1c005c, #5656ff,#3e84fe,#416aff);  */
+  /* background-color: rgb(18, 201, 201); */
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  height: 30px;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2),
+    0 6px 20px rgba(255, 255, 255, 0.19); /* Adds shadow effect */
 }
- 
+.vertical-divider {
+  height: 50px; /* Increase this value for more height */
+  width: 2px;
+  background-color: #adadad;
+  margin: 0 20px; /* Add spacing around the divider */
+}
+.user-profile {
+  display: flex;
+  align-items: center;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+}
+.profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  padding: 10px 20px;
+  border-bottom: 3px solid #b30000;
+}
+.logo {
+  width: 150px;
+  height: 60px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+h1 span {
+  font-size: 16px;
+  color: gray;
+  font-weight: normal;
+}
+
+.logo-title {
+  display: flex;
+  align-items: center;
+}
+
+.user-info span {
+  margin-right: 10px;
+}
+
 .incident-toolbar {
   background-color: #020072;
   color: rgb(0, 0, 0);
 }
- 
-body.dark-mode .incident-toolbar {
-  background-color: #00177c;
-}
- 
-/* Additional dark mode styles */
-body.dark-mode .incident-toolbar1 {
-  background-color: #555555;
-  color: #ffffff;
-}
- 
-body.dark-mode .incident-toolbar2 {
-  color: #ffffff;
-}
- 
-body.dark-mode .transparent-button {
-  background-color: rgba(17, 0, 255, 0.1) !important;
-  color: #ffffff !important;
-  border: 2px solid #72c2ff !important;
-}
- 
-body.dark-mode .transparent-button1 {
-  background-color: rgba(17, 0, 255, 0.1) !important;
-  color: #ffffff !important;
-  border: 2px solid #72c2ff !important;
-}
- 
-body.dark-mode .file-drop-zone {
-  border: 2px dashed #aaaaaa;
-  background-color: rgb(0, 9, 103);
-}
- 
-body.dark-mode .file-drop-zone:hover {
-  background-color: #060074;
-  color: #ffffff;
-}
- 
-/* Dark mode for other elements if needed */
-body.dark-mode .left-side,
-body.dark-mode .right-side {
-  background-color: rgba(0, 0, 0, 0.5);
-}
- 
-body.dark-mode .full-height {
-  background-color: rgba(0, 40, 240, 0.1);
-}
- 
-body.dark-mode .progress-bar {
-  background-color: rgba(0, 0, 0, 0.25);
-}
- 
+
 /* Button styles for Angular Material icons */
 button[mat-icon-button] {
   color: white;
 }
- 
-body.dark-mode button[mat-icon-button] {
-  color: #f0f0f0;
-}
- 
+
 /* Specific toolbar button styles */
 .incident-toolbar button[mat-icon-button] {
   margin-left: auto; /* Align button to the right */
   color: inherit; /* Inherit color from toolbar */
 }
- 
- 
- 
- 
- /* styles.css or component-specific stylesheet */
+
+/* styles.css or component-specific stylesheet */
 
 .table-container {
   margin: 40px;
@@ -357,7 +96,8 @@ body.dark-mode button[mat-icon-button] {
   width: 80%;
 }
 
-.mat-header-cell, .mat-cell {
+.mat-header-cell,
+.mat-cell {
   padding: 16px;
   text-align: left;
 }
@@ -379,314 +119,265 @@ body.dark-mode button[mat-icon-button] {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-   body {
-    background-size: cover;
-    border-radius: 0%;
-    background-repeat: no-repeat;
-   
-    font-weight: bold;
-     height:2030px;
-    /* background-image: url("https://imagetolink.com/ib/fEBA9zUM8n.jpg"); */
-    /* background-color: rgb(0, 0, 0); */
-    color: rgb(0, 0, 0); /* Ensures all text is white */
-    background-position: center;
-    font-family: Roboto;
-    background: linear-gradient(to right, #1c005c, #5656ff,#3e84fe,#416aff);
-}
- 
-   body {
-    position: relative;
-    font-family: Roboto;
-    color: rgb(255, 255, 255); /* Ensures all text is white */
-    font-weight: bold;
-}
- 
-/* body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* background-image: url("https://imagetolink.com/ib/EhqEVh0F8k.jpg");
-    background: linear-gradient(to right, #1c005c, #5656ff,#3e84fe,#71c4ff);
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    filter: blur(20px);
-    z-index: -1;
-   */
-  .upload-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-  }
- 
-  .inner-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.3);
-  }
- 
-  .left-side {
-    width: 45%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    height: 100vh; /* Ensure the PDF viewer takes up the full height of the viewport */
-  }
- 
-  .right-side {
-    width: 50%;
-    height: 100vh; /* Ensure the PDF viewer takes up the full height of the viewport */
-    overflow: auto;
-  }
- 
-  .container, .container1 {
-    width: 60%;
-    margin-top: 15px;
-    margin-left: 150px;
-  }
+body {
+  background-size: cover;
+  border-radius: 0%;
+  background-repeat: no-repeat;
 
-  .container{
-    height:35%
-  }
- 
-  .container1 {
-    
-    width: 80%;
-    margin-top: 30px;
-    margin-left: 80px;
-    justify-content: center;
-    text-align: center;
-  }
- 
- 
- 
-  .full-height {
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background-color: rgba(0, 40, 240, 0.2); /* Blue transparent background */
-  }
- 
-  .file-drop-zone {
-    border: 2px dashed #5cdeff; /* Angular Material primary color */
-    padding: 40px;
-    text-align: center;
-    color: #ffffff;
-    cursor: pointer;
-    height: auto;
-    font-family: 'roboto', sans-serif;
-    font-size: 18px;
-    transition: background-color 0.3s ease;
-    background-color: rgba(53, 137, 255, 0.2); /* Blue transparent background */
-   
-  }
- 
-  .file-drop-zone:hover {
-    background-color: #3e69e1;
-    color: rgb(0, 0, 0);
-  }
- 
-  .upload-icon {
-    max-width: 100px;
-    margin-bottom: 10px;
-  }
- 
-  .mat-card-content h2 {
-    font-family: 'Arial', sans-serif;
-    font-size: 20px;
-    background-color: rgba(161, 160, 221, 0.8);
-    font-weight: bold;
-  }
- 
-  .mat-raised-button {
-    font-family: 'Arial', sans-serif;
-    font-size: 16px;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-  }
- 
-  .transparent-button {
-    background-color: rgba(255, 255, 255, 0.2) !important; /* Blue transparent background */
-    color: #ffffff !important; /* Text color */
-    border: 2px solid #0a0077 !important; /* Border color */
-    position: relative; /* Required for pseudo-element positioning */
-    overflow: hidden; /* Ensure the glow effect stays within the button bounds */
+  font-weight: bold;
+  height: 2030px;
+  /* background-image: url("https://imagetolink.com/ib/fEBA9zUM8n.jpg"); */
+  /* background-color: rgb(0, 0, 0); */
+  color: rgb(0, 0, 0); /* Ensures all text is white */
+  background-position: center;
+  font-family: Roboto;
+  background: linear-gradient(to right, #1c005c, #5656ff, #3e84fe, #416aff);
+}
+
+body {
+  position: relative;
+  font-family: Roboto;
+  color: rgb(255, 255, 255); /* Ensures all text is white */
+  font-weight: bold;
+}
+
+.upload-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.inner-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.left-side {
+  width: 45%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100vh; /* Ensure the PDF viewer takes up the full height of the viewport */
+}
+
+.right-side {
+  width: 50%;
+  height: 100vh; /* Ensure the PDF viewer takes up the full height of the viewport */
+  overflow: auto;
+}
+
+.container,
+.container1 {
+  width: 60%;
+  margin-top: 15px;
+  margin-left: 150px;
+}
+
+.container {
+  height: 35%;
+}
+
+.container1 {
+  width: 80%;
+  margin-top: 30px;
+  margin-left: 80px;
+  justify-content: center;
+  text-align: center;
+}
+
+.full-height {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: rgba(0, 40, 240, 0.2); /* Blue transparent background */
+}
+
+.file-drop-zone {
+  border: 2px dashed #5cdeff; /* Angular Material primary color */
+  padding: 40px;
+  text-align: center;
+  color: #ffffff;
+  cursor: pointer;
+  height: auto;
+  font-family: "roboto", sans-serif;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+  background-color: rgba(53, 137, 255, 0.2); /* Blue transparent background */
+}
+
+.file-drop-zone:hover {
+  background-color: #3e69e1;
+  color: rgb(0, 0, 0);
+}
+
+.upload-icon {
+  max-width: 100px;
+  margin-bottom: 10px;
+}
+
+.mat-card-content h2 {
+  font-family: "Arial", sans-serif;
+  font-size: 20px;
+  background-color: rgba(161, 160, 221, 0.8);
+  font-weight: bold;
+}
+
+.mat-raised-button {
+  font-family: "Arial", sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.transparent-button {
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.2
+  ) !important; /* Blue transparent background */
+  color: #ffffff !important; /* Text color */
+  border: 2px solid #0a0077 !important; /* Border color */
+  position: relative; /* Required for pseudo-element positioning */
+  overflow: hidden; /* Ensure the glow effect stays within the button bounds */
 }
 .transparent-button1 {
-    background-color: rgba(21, 0, 157, 0.2) !important; /* Blue transparent background */
-    color: #ffffff !important; /* Text color */
-    border: 2px solid #0e004e !important; /* Border color */
-    position: relative; /* Required for pseudo-element positioning */
-    overflow: hidden; /* Ensure the glow effect stays within the button bounds */
+  background-color: rgba(
+    21,
+    0,
+    157,
+    0.2
+  ) !important; /* Blue transparent background */
+  color: #ffffff !important; /* Text color */
+  border: 2px solid #0e004e !important; /* Border color */
+  position: relative; /* Required for pseudo-element positioning */
+  overflow: hidden; /* Ensure the glow effect stays within the button bounds */
 }
- 
- 
+
 .transparent-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: 2px solid transparent;
-    border-radius: inherit;
-    box-sizing: border-box;
-    animation: glow 2s infinite alternate; /* Adjust animation duration and other properties */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 2px solid transparent;
+  border-radius: inherit;
+  box-sizing: border-box;
+  animation: glow 2s infinite alternate; /* Adjust animation duration and other properties */
 }
- 
+
 @keyframes glow {
-    0% {
-        box-shadow: 0 0 0 0 rgba(13, 0, 88, 0.6);
-    }
-    100% {
-        box-shadow: 0 0 0 15px rgba(117, 218, 255, 0);
-    }
+  0% {
+    box-shadow: 0 0 0 0 rgba(13, 0, 88, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 15px rgba(117, 218, 255, 0);
+  }
 }
- 
- 
- 
-  .transparent-button::after {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    border: 2px solid #000564;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    border-radius: 20px;
-  }
- 
-  .transparent-button:hover::after {
-    opacity: 1;
-  }
- 
-  /* .transparent-button:hover {
-    background-color: rgba(139, 241, 255, 0.3) !important;
-  }
-   
-  .common-upload-section {
-    width: 100%;
-     margin-bottom: 35px;
-    margin-left: 30px;
-    margin-right: 55px;
-  }*/
- 
-  .mat-progress-bar {
-    height: 90px;
-    width: 100%;
-  }
-/*  
-  .mt-3 {
-    margin-top: 16px;
-    margin-right: 40px;
-  }
- 
-  .w-100 {
-    width: 100%;
-    margin-left: 5px;
-  } */
-  .common-upload-section {
-    width: 100%;
-    margin-left: 30px;
-    margin-right: 55px;
-  }
-  .common-upload-section1 {
-    width: 100%;
-    margin-left: 30px;
-    margin-right: 55px;
-  }
- 
-  .mt-3 {
-    margin-top: 10px;
-    margin-right: 40px;
-  }
- 
-  .w-100 {
-    width: 70%;
-    margin-left: 90px;
-  }
- 
-  .incident-toolbar {
-    background-color: #000872;
-    /* background: linear-gradient(to right, #1c005c, #5656ff,#3e84fe,#416aff);  */
-    /* background-color: rgb(18, 201, 201); */
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    height: 30px;
-    font-weight: bold;
-    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2), 0 6px 20px rgba(255, 255, 255, 0.19); /* Adds shadow effect */
-  }
- 
-  .incident-toolbar1 {
-    background-color: #e6efe8;
-    color: rgb(179, 179, 179);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px 20px;
-    height: 20px;
-    font-weight: bold;
-    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2), 0 6px 20px rgba(255, 255, 255, 0.19); /* Adds shadow effect */
-  }
- 
-  .incident-toolbar2 {
-    color: rgb(27, 0, 232);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 1px;
-    font-weight: bold;
-    margin-left: 20px;
-    box-shadow: 0 4px 8px rgba(193, 199, 255, 0.2), 0 6px 20px rgba(255, 255, 255, 0.19); /* Adds shadow effect */
-  }
- 
-  .spacer {
-    flex: 1 1 auto;
-  }
- 
-  .user-info {
-    display: flex;
-    align-items: center;
-  }
- 
-  .user-avatar {
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    margin-right: 8px;
-  }
- /* Custom styles for animated striped progress bar */
+
+.transparent-button::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 2px solid #000564;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 20px;
+}
+
+.transparent-button:hover::after {
+  opacity: 1;
+}
+
+.mat-progress-bar {
+  height: 90px;
+  width: 100%;
+}
+
+.common-upload-section {
+  width: 100%;
+  margin-left: 30px;
+  margin-right: 55px;
+}
+.common-upload-section1 {
+  width: 100%;
+  margin-left: 30px;
+  margin-right: 55px;
+}
+
+.mt-3 {
+  margin-top: 10px;
+  margin-right: 40px;
+}
+
+.w-100 {
+  width: 70%;
+  margin-left: 90px;
+}
+
+.incident-toolbar {
+  background-color: #000872;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  height: 30px;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2),
+    0 6px 20px rgba(255, 255, 255, 0.19); /* Adds shadow effect */
+}
+
+.incident-toolbar1 {
+  background-color: #e6efe8;
+  color: rgb(179, 179, 179);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 20px;
+  height: 20px;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2),
+    0 6px 20px rgba(255, 255, 255, 0.19); /* Adds shadow effect */
+}
+
+.incident-toolbar2 {
+  color: rgb(27, 0, 232);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 1px;
+  font-weight: bold;
+  margin-left: 20px;
+  box-shadow: 0 4px 8px rgba(193, 199, 255, 0.2),
+    0 6px 20px rgba(255, 255, 255, 0.19); /* Adds shadow effect */
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+}
+/* Custom styles for animated striped progress bar */
 @keyframes progress-bar-stripes {
   from {
     background-position: 1rem 0;
@@ -695,7 +386,7 @@ body.dark-mode button[mat-icon-button] {
     background-position: 0 0;
   }
 }
- 
+
 .progress {
   position: relative;
   height: 12px;
@@ -703,7 +394,7 @@ body.dark-mode button[mat-icon-button] {
   overflow: hidden;
   margin-bottom: 3px;
 }
- 
+
 .progress-bar {
   position: relative;
   height: 100%;
@@ -722,7 +413,7 @@ body.dark-mode button[mat-icon-button] {
   animation: progress-bar-stripes 1s linear infinite;
   transition: width 0.6s ease;
 }
- 
+
 .progress-label {
   position: absolute;
   width: 100%;
@@ -733,33 +424,32 @@ body.dark-mode button[mat-icon-button] {
   top: 50%;
   transform: translateY(-50%);
 }
- 
+
 .upload-progress-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
- 
+
 .transparent-button {
   flex: 0 0 auto; /* Allow the button to take up its content width */
- 
+
   height: 23px;
   margin-bottom: 2px;
 }
- 
+
 .progress-container {
   flex: 1 1 auto; /* Allow the progress bar to take up the remaining space */
   margin-left: 10px; /* Add some space between the button and the progress bar */
 }
- 
- 
+
 .spinner-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 80%; /* Ensure the container takes up the full height */
 }
- 
+
 .mat-spinner {
   display: block;
 }
@@ -771,9 +461,9 @@ body.dark-mode button[mat-icon-button] {
   height: 40px;
   animation: spin 1s linear infinite;
 }
- 
+
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
- 
- 
