@@ -5,7 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { FileUploadComponent } from './file-upload/file-upload.component';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import {MatProgressBarModule} from '@angular/material/progress-bar';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,16 +16,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgxDocViewerModule } from 'ngx-doc-viewer';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { MatTableModule } from '@angular/material/table';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    FileUploadComponent
-  ],
+  declarations: [AppComponent, FileUploadComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    MatProgressBarModule,MatButtonModule,
+    MatProgressBarModule,
+    MatButtonModule,
     HttpClientModule,
     BrowserAnimationsModule,
     MatIconModule,
@@ -33,11 +33,11 @@ import { MatTableModule } from '@angular/material/table';
     MatInputModule,
     PdfViewerModule,
     MatProgressSpinnerModule,
-   MatTableModule
+    MatTableModule,
+    FontAwesomeModule,
+    MatCheckboxModule,
   ],
-  providers: [
-    provideAnimationsAsync()
-  ],
-  bootstrap: [AppComponent]
+  providers: [provideAnimationsAsync()],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

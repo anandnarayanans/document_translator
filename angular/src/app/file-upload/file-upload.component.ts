@@ -3,6 +3,7 @@ import { HttpClient, HttpEventType } from '@angular/common/http';
 import { interval } from 'rxjs';
 import { switchMap, takeWhile, catchError } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-file-upload',
@@ -24,9 +25,10 @@ export class FileUploadComponent implements OnInit {
   translatedFiles: any[] = [];
   displayedColumns: string[] = [
     'fileName',
-    'fileFormat',
     'translationDate',
-    'translationTime',
+    'numberOfPages',
+    'fileSize',
+    'language',
     'downloadLink',
   ];
   dataSource = new MatTableDataSource<any>();

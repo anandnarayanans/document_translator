@@ -91,6 +91,16 @@ def translate_arabic_to_english(model, tokenizer, lines):
         translated_lines.append(translated_text)
     return translated_lines
  
+def get_file_size(file_path):
+    """ Get the file size in MB. """
+    file_size_mb = os.path.getsize(file_path) / (1024 * 1024)  # Convert to MB
+    return round(file_size_mb, 2)
+
+def get_number_of_pages(file_path):
+    """ Get the number of pages using pdfplumber. """
+    with pdfplumber.open(file_path) as pdf:
+        return len(pdf.pages)
+    
 def clean_translation(text):
     """Clean the translated text to remove unwanted artifacts."""
     text = text.replace("Ta &apos; air", "Name")
@@ -241,7 +251,10 @@ def translate_pdf(file_path, translation_id, initial_format):
         "initial_format": initial_format,
         "file_name": os.path.basename(file_path),
         "translation_time": datetime.now().strftime("%H:%M:%S"),
-        "translation_date": datetime.now().strftime("%Y-%m-%d")
+        "translation_date": datetime.now().strftime("%Y-%m-%d"),
+         "number_of_pages": get_number_of_pages(file_path),
+        "file_size": get_file_size(file_path),
+        "language": "Arabic-English"
     }
     translations[translation_id] = translation_details
     save_translations(translations)
