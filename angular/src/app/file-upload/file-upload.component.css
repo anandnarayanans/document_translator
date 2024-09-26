@@ -79,7 +79,10 @@ h1 span {
 .folder-icon {
   font-size: 30px;
   color: #900000;
-  margin-left: 67px;
+  /* margin-left: 67px; */
+  /* margin-left: 27px; */
+  /* left: 90px; */
+
   bottom: 5px;
 }
 
@@ -157,6 +160,7 @@ h1 span {
   flex-direction: column;
   align-items: center;
 }
+
 .supported-text {
   color: grey;
   font-size: 14px;
@@ -181,7 +185,7 @@ h1 span {
 .translate-btn {
   background-color: #900000 !important;
   color: white !important;
-  border-radius: 11px 11px;
+  border-radius:11px 11px;
   font-size: 16px;
   align-items: center;
   justify-content: center;
@@ -409,6 +413,8 @@ body {
   border: 2px solid #900000 !important; /* Dark red border */
   position: relative; /* Required for pseudo-element positioning */
   overflow: hidden; /* Ensure the glow effect stays within the button bounds */
+  width: 100%; /* Full width */
+  text-align: center; /* Center text inside the button */
 }
 
 /* .transparent-button::before {
