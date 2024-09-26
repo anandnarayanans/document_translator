@@ -1,26 +1,54 @@
 {
     "1": {
         "status": "completed",
-        "file_path": "C:\\Users\\User\\AppData\\Local\\Temp\\tmp4smpi401\\translated_output.pdf",
-        "download_link": "C:\\Users\\User\\AppData\\Local\\Temp\\tmp4smpi401\\translated_output.pdf",
+        "file_path": "C:\\Users\\User\\AppData\\Local\\Temp\\tmpj39p6lii\\translated_output.pdf",
+        "download_link": "C:\\Users\\User\\AppData\\Local\\Temp\\tmpj39p6lii\\translated_output.pdf",
         "initial_format": "pdf",
-        "file_name": "11 1.pdf",
-        "translation_time": "11:06:47",
-        "translation_date": "2024-09-20",
+        "file_name": "RFP_Data_Intelligence_Platform_RCMC_1445H.pdf",
+        "translation_time": "11:43:56",
+        "translation_date": "2024-09-26",
         "number_of_pages": 2,
         "file_size": 0.07,
-        "language": "Arabic-English"
+        "language": "Arabic-English",
+        "project": "Proposals"
     },
     "2": {
         "status": "completed",
-        "file_path": "C:\\Users\\User\\AppData\\Local\\Temp\\tmp8w_j9iwg\\translated_output.pdf",
-        "download_link": "C:\\Users\\User\\AppData\\Local\\Temp\\tmp8w_j9iwg\\translated_output.pdf",
-        "initial_format": "pdf",
-        "file_name": "11 1.pdf",
-        "translation_time": "11:41:38",
-        "translation_date": "2024-09-20",
+        "file_path": "C:\\Users\\User\\AppData\\Local\\Temp\\tmpyqfz1nwl\\translated_output.pdf",
+        "download_link": "C:\\Users\\User\\AppData\\Local\\Temp\\tmpyqfz1nwl\\translated_output.pdf",
+        "initial_format": "docx",
+        "file_name": "RFP_Data_Intelligence_Platform_RCMC_1445H.docx",
+        "translation_time": "17:25:17",
+        "translation_date": "2024-09-26",
         "number_of_pages": 2,
         "file_size": 0.07,
-        "language": "Arabic-English"
+        "language": "Arabic-English",
+        "project": "Proposals"
+    },
+    "3": {
+        "status": "completed",
+        "file_path": "C:\\Users\\User\\AppData\\Local\\Temp\\tmpp_691_o2\\translated_output.pdf",
+        "download_link": "C:\\Users\\User\\AppData\\Local\\Temp\\tmpp_691_o2\\translated_output.pdf",
+        "initial_format": "pdf",
+        "file_name": "Palestine_Public_Works_Reconstruction_Guidelines_2024.pdf",
+        "translation_time": "16:03:50",
+        "translation_date": "2024-09-26",
+        "number_of_pages": 10,
+        "file_size": 0.62,
+        "language": "Arabic-English",
+        "project": "Policies/Guidelines"
+    },
+    "4": {
+        "status": "completed",
+        "file_path": "C:\\Users\\User\\AppData\\Local\\Temp\\tmpyr7axxzl\\translated_output.pdf",
+        "download_link": "C:\\Users\\User\\AppData\\Local\\Temp\\tmpyr7axxzl\\translated_output.pdf",
+        "initial_format": "pdf",
+        "file_name": "Palestine_Public_Works_Reconstruction_Guidelines_2024.docx",
+        "translation_time": "14:41:27",
+        "translation_date": "2024-09-26",
+        "number_of_pages": 10,
+        "file_size": 0.62,
+        "language": "Arabic-English",
+        "project": "Policies/Guidelines"
     }
 }

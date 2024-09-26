@@ -25,6 +25,7 @@ export class FileUploadComponent implements OnInit {
   translatedFiles: any[] = [];
   displayedColumns: string[] = [
     'fileName',
+    'project',
     'translationDate',
     'numberOfPages',
     'fileSize',

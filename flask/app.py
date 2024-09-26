@@ -101,6 +101,12 @@ def get_number_of_pages(file_path):
     with pdfplumber.open(file_path) as pdf:
         return len(pdf.pages)
     
+def get_project(file_name):
+    if "Guidelines" in file_name:
+        return "Policies/Guidelines"
+    else:
+        return "Proposals"
+    
 def clean_translation(text):
     """Clean the translated text to remove unwanted artifacts."""
     text = text.replace("Ta &apos; air", "Name")
@@ -254,7 +260,8 @@ def translate_pdf(file_path, translation_id, initial_format):
         "translation_date": datetime.now().strftime("%Y-%m-%d"),
          "number_of_pages": get_number_of_pages(file_path),
         "file_size": get_file_size(file_path),
-        "language": "Arabic-English"
+        "language": "Arabic-English",
+        "project": get_project(os.path.basename(file_path))
     }
     translations[translation_id] = translation_details
     save_translations(translations)

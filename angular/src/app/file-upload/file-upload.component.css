@@ -181,7 +181,7 @@ h1 span {
 .translate-btn {
   background-color: #900000 !important;
   color: white !important;
-  padding: 10px 20px;
+  border-radius: 11px 11px;
   font-size: 16px;
   align-items: center;
   justify-content: center;
