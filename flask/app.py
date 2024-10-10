@@ -25,10 +25,14 @@ from datetime import datetime
 import json
 import random
 import string
- 
+from langdetect import detect, DetectorFactory
+from langcodes import Language
+
 app = Flask(__name__)
 CORS(app)
- 
+ # Set seed for consistent language detection
+DetectorFactory.seed = 0
+
 translations = {
     "1": {
         "file_name": "example.pdf",
@@ -106,6 +110,12 @@ def get_project(file_name):
         return "Policies/Guidelines"
     else:
         return "Proposals"
+    
+def get_full_language_name(detected_lang):
+    try:
+        return Language.get(detected_lang).display_name().capitalize()
+    except:
+        return detected_lang.capitalize()
     
 def clean_translation(text):
     """Clean the translated text to remove unwanted artifacts."""
@@ -225,11 +235,22 @@ def save_text_images_tables_to_docx(pages_content, output_docx_path):
  
  
 def translate_pdf(file_path, translation_id, initial_format):
+    
+     # First, extract only the first page for language detection
+    with pdfplumber.open(file_path) as pdf:
+        first_page = pdf.pages[0]
+        first_page_text = first_page.extract_text()
+        if not first_page_text:
+            raise ValueError("No text found in the first page")
+        
+        # Detect language only from first page
+        detected_lang = detect(first_page_text)
+        model_name = f"Helsinki-NLP/opus-mt-{detected_lang}-en"
+        tokenizer = MarianTokenizer.from_pretrained(model_name)
+        model = MarianMTModel.from_pretrained(model_name)
+        
     extracted_content = extract_text_images_tables_from_pdf(file_path)
-    model_name = "Helsinki-NLP/opus-mt-ar-en"
-    tokenizer = MarianTokenizer.from_pretrained(model_name)
-    model = MarianMTModel.from_pretrained(model_name)
- 
+  
     for page_content in extracted_content:
         lines = page_content["text"].split('\n')
         translated_lines = translate_arabic_to_english(model, tokenizer, lines)
@@ -260,29 +281,15 @@ def translate_pdf(file_path, translation_id, initial_format):
         "translation_date": datetime.now().strftime("%Y-%m-%d"),
          "number_of_pages": get_number_of_pages(file_path),
         "file_size": get_file_size(file_path),
-        "language": "Arabic-English",
+        # "language": "Arabic-English",
+        "language": f"{get_full_language_name(detected_lang)}-English",
         "project": get_project(os.path.basename(file_path))
     }
     translations[translation_id] = translation_details
     save_translations(translations)
  
  
- 
- 
-def convert_docx_to_pdf(docx_path):
-    """Convert DOCX to PDF using the docx2pdf library."""
-    output_pdf_path = docx_path.replace('.docx', '.pdf')
-    docx2pdf_convert(docx_path, output_pdf_path)
-    return output_pdf_path
- 
-def convert_pdf_to_docx(pdf_path):
-    """Convert PDF to DOCX using the pdf2docx library."""
-    output_docx_path = pdf_path.replace('.pdf', '.docx')
-    cv = Converter(pdf_path)
-    cv.convert(output_docx_path, start=0, end=None)
-    cv.close()
-    return output_docx_path
- 
+
 @app.route('/upload', methods=['POST'])
 def upload():
     pythoncom.CoInitialize()
@@ -294,10 +301,7 @@ def upload():
         file.save(file_path)
  
         initial_format = 'pdf' if file.filename.endswith('.pdf') else 'docx'
-       
-        if initial_format == 'docx':
-            file_path = convert_docx_to_pdf(file_path)
- 
+
         return jsonify({'message': 'File uploaded successfully', 'file_path': file_path, 'initial_format': initial_format})
     return jsonify({'message': 'No file uploaded'}), 400
  
@@ -334,11 +338,7 @@ def download_translated(translation_id):
         file_path = translation['file_path']
         initial_format = translation.get('initial_format')
  
-        if initial_format == 'docx' and file_path.endswith('.pdf'):
-            file_path = convert_pdf_to_docx(file_path)
-        elif initial_format == 'pdf' and file_path.endswith('.docx'):
-            file_path = convert_docx_to_pdf(file_path)
-           
+
         return send_file(file_path, as_attachment=True)
     return jsonify({'message': 'File not found or translation not completed'}), 404
  
