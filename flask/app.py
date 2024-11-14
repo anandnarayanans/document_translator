@@ -131,52 +131,78 @@ def clean_translation(text):
    
     cleaned_text = re.sub(r'\b(?:no|not|non-|, ,)\b', '', text, flags=re.IGNORECASE).strip()
     return cleaned_text
- 
-def save_text_images_tables_to_pdf(pages_content, output_pdf_path, model, tokenizer):
+
+def save_text_images_tables_to_pdf(pages_content, output_pdf_path,model, tokenizer):
     """Save the given text, images, and tables to a PDF file."""
     c = canvas.Canvas(output_pdf_path, pagesize=letter)
     width, height = letter
     styles = getSampleStyleSheet()
     styleN = styles['Normal']
+    left_margin, right_margin = 40, 40
  
     for page_content in pages_content:
-        y = height - 40  # Start from top of the page
+        y = height - 40  # Start from the top of the page
  
-        # Draw images first to avoid overlapping text
+        # Draw images with minimal space between images and text
         for img_bbox, img_bytes in page_content["images"]:
             x0, top, x1, bottom = img_bbox
             image_stream = BytesIO(img_bytes)
             img_height = bottom - top
             img_width = x1 - x0
             c.drawImage(ImageReader(image_stream), x0, height - bottom, width=img_width, height=img_height)
-            y -= img_height + 15  # Add some extra space between image and text
+            y -= img_height + 5  # Minimal space between image and next text line
  
         c.setFont("Helvetica", 11)
- 
         translated_text = page_content["translated_text"]
         translated_lines = translated_text.split('\n')
  
+        # Render translated text with bold formatting for sentences with colons
         for line in translated_lines:
-            words = line.split()
-            current_line = ""
-            for word in words:
-                if c.stringWidth(current_line + " " + word) > (width - 80):  # 80 is a margin value
-                    c.drawString(40, y, current_line.strip())
-                    y -= 15  # Move to the next line with a fixed spacing
-                    current_line = ""
-                if current_line == "":
-                    current_line = word
-                else:
-                    current_line += " " + word
-            if current_line:
-                c.drawString(40, y, current_line.strip())
-                y -= 15  # Move to the next line with a fixed spacing
+            # Check if the line contains a colon and handle it as a full sentence if so
+            if ":" in line:
+                colon_idx = line.index(":")
+                sentence = line[:colon_idx + 1].strip().capitalize()  # Capitalize the start of the sentence
+                remaining_text = line[colon_idx + 1:].strip()
+               
+                # Draw the bold sentence with word wrapping and a single space after the colon
+                c.setFont("Helvetica-Bold", 11)
+                sentence_to_print = (sentence + ":" if sentence[-1] != ":" else sentence) + " "
+               
+                # Word wrapping for the bold sentence
+                text_offset = left_margin
+                for word in sentence_to_print.split():
+                    if text_offset + c.stringWidth(word + " ") > (width - right_margin):
+                        y -= 15  # Move to next line
+                        text_offset = left_margin
+                    c.drawString(text_offset, y, word)
+                    text_offset += c.stringWidth(word + " ")
+ 
+                # Draw remaining text in normal font with word wrapping
+                c.setFont("Helvetica", 11)
+                for word in remaining_text.split():
+                    if text_offset + c.stringWidth(word + " ") > (width - right_margin):
+                        y -= 15  # Move to next line
+                        text_offset = left_margin
+                    c.drawString(text_offset, y, word)
+                    text_offset += c.stringWidth(word + " ")
+ 
+            else:
+                # Draw the line as normal with word wrapping within the margins
+                text_offset = left_margin
+                for word in line.split():
+                    if text_offset + c.stringWidth(word + " ") > (width - right_margin):
+                        y -= 15  # Move to next line
+                        text_offset = left_margin
+                    c.drawString(text_offset, y, word)
+                    text_offset += c.stringWidth(word + " ")
+ 
+            y -= 15  # Minimal space to the next line of text
  
             if y < 40:  # Create a new page if we reach the bottom of the current page
                 c.showPage()
                 y = height - 40
  
-        # Draw tables
+        # Draw tables with word wrapping in each cell
         for table in page_content["tables"]:
             table_style = TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.white),
@@ -196,17 +222,17 @@ def save_text_images_tables_to_pdf(pages_content, output_pdf_path, model, tokeni
                 wrapped_row = [Paragraph(cell, styleN) for cell in row]
                 wrapped_table.append(wrapped_row)
  
-            col_widths = [(width - 80) / len(wrapped_table[0])] * len(wrapped_table[0])  # Adjust column width to fit page
+            col_widths = [(width - left_margin - right_margin) / len(wrapped_table[0])] * len(wrapped_table[0])
             t = Table(wrapped_table, colWidths=col_widths)
             t.setStyle(table_style)
             w, h = t.wrap(width, y)
             if h > y:
                 c.showPage()
                 y = height - 40
-            t.drawOn(c, 40, y - h)
+            t.drawOn(c, left_margin, y - h)
             y -= h + 15
  
-        c.showPage()  # Create a new page for the next set of content
+        c.showPage()
  
     c.save()
  
