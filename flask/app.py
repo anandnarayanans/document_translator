@@ -132,7 +132,157 @@ def clean_translation(text):
     cleaned_text = re.sub(r'\b(?:no|not|non-|, ,)\b', '', text, flags=re.IGNORECASE).strip()
     return cleaned_text
 
-def save_text_images_tables_to_pdf(pages_content, output_pdf_path,model, tokenizer):
+
+def save_text_images_tables_to_pdf(pages_content, output_pdf_path, model, tokenizer): 
+    """Save the given text, images, and tables to a PDF file."""
+    c = canvas.Canvas(output_pdf_path, pagesize=letter)
+    width, height = letter
+    styles = getSampleStyleSheet()
+    styleN = styles['Normal']
+    left_margin, right_margin = 35, 35
+    current_font_size = 11  # Default font size
+    
+    for page_content in pages_content:
+        y = height - 40  # Start from the top of the page
+ 
+        # Draw images with minimal space between images and text
+        for img_bbox, img_bytes in page_content["images"]:
+            x0, top, x1, bottom = img_bbox
+            image_stream = BytesIO(img_bytes)
+            img_height = bottom - top
+            img_width = x1 - x0
+            c.drawImage(ImageReader(image_stream), x0, height - bottom, width=img_width, height=img_height)
+            y -= img_height + 5  # Minimal space between image and next text line
+ 
+        c.setFont("Helvetica", current_font_size)
+        translated_text = page_content["translated_text"]
+        translated_lines = translated_text.split('\n')
+ 
+        # Variables for list detection
+        in_numbered_list = False
+        in_address_list = False
+        next_line_starts_address_list = False
+
+        i = 0
+        while i < len(translated_lines):
+            line = translated_lines[i]
+            
+            # Check for numbered list start
+            starts_with_number = line.strip() and line.strip()[0].isdigit() and '.' in line.strip()[:3]
+
+            # Check for address-based list start in next line
+            if "address" in line.lower() and ":" in line:
+                if i > 0:
+                    y -= 15  # Line break above the sentence before the address-based list
+                next_line_starts_address_list = True
+            elif next_line_starts_address_list:
+                in_address_list = True
+                next_line_starts_address_list = False
+            
+            # Detect sentences with ':' and '-' and handle line breaks
+            if ":" in line and "-" in line:
+                if i < len(translated_lines) - 1 and translated_lines[i + 1].strip()[0].isdigit():
+                    y -= 15  # Add a line break above the sentence
+
+            # Handle list end conditions
+            if in_numbered_list and not starts_with_number:
+                in_numbered_list = False
+                y -= 15  # Line break above detected list
+            
+            if in_address_list:
+                words = line.split()
+                if len(words) >= 14:  # Check for long sentence
+                    in_address_list = False
+                    y -= 15  # Line break above detected list
+            
+            # Check if the line contains a colon and handle it as a full sentence if so
+            if ":" in line:
+                colon_idx = line.index(":")
+                sentence = line[:colon_idx + 1].strip().capitalize()
+                remaining_text = line[colon_idx + 1:].strip()
+               
+                # Draw the bold sentence with word wrapping and a single space after the colon
+                c.setFont("Helvetica-Bold", current_font_size)
+                sentence_to_print = (sentence + ":" if sentence[-1] != ":" else sentence) + " "
+               
+                # Word wrapping for the bold sentence
+                text_offset = left_margin
+                for word in sentence_to_print.split():
+                    if text_offset + c.stringWidth(word + " ") > (width - right_margin):
+                        y -= 15
+                        text_offset = left_margin
+                    c.drawString(text_offset, y, word)
+                    text_offset += c.stringWidth(word + " ")
+ 
+                # Draw remaining text in normal font with word wrapping
+                c.setFont("Helvetica", current_font_size)
+                for word in remaining_text.split():
+                    if text_offset + c.stringWidth(word + " ") > (width - right_margin):
+                        y -= 15
+                        text_offset = left_margin
+                    c.drawString(text_offset, y, word)
+                    text_offset += c.stringWidth(word + " ")
+            else:
+                # Draw the line as normal with word wrapping within the margins
+                text_offset = left_margin
+                for word in line.split():
+                    if text_offset + c.stringWidth(word + " ") > (width - right_margin):
+                        y -= 15
+                        text_offset = left_margin
+                    c.drawString(text_offset, y, word)
+                    text_offset += c.stringWidth(word + " ")
+ 
+            y -= 15  # Minimal space to the next line of text
+ 
+            # Check for page break and prevent empty page creation
+            if y < 40:
+                if y == height - 40:  # Ensure the current page is not empty
+                    break
+                c.showPage()
+                y = height - 40
+                c.setFont("Helvetica", current_font_size)  # Maintain font size across pages
+            
+            i += 1
+ 
+        # Draw tables with word wrapping in each cell
+        for table in page_content["tables"]:
+            table_style = TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+                ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+                ('TOPPADDING', (0, 0), (-1, -1), 12),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('WORDWRAP', (0, 0), (-1, -1), 'CJK')
+            ])
+ 
+            wrapped_table = []
+            for row in table:
+                wrapped_row = [Paragraph(cell, styleN) for cell in row]
+                wrapped_table.append(wrapped_row)
+ 
+            col_widths = [(width - left_margin - right_margin) / len(wrapped_table[0])] * len(wrapped_table[0])
+            t = Table(wrapped_table, colWidths=col_widths)
+            t.setStyle(table_style)
+            w, h = t.wrap(width, y)
+            if h > y:
+                if y != height - 40:  # Avoid adding a new page if the current one is empty
+                    c.showPage()
+                y = height - 40
+                c.setFont("Helvetica", current_font_size)  # Maintain font size across pages
+            t.drawOn(c, left_margin, y - h)
+            y -= h + 15
+ 
+        if y != height - 40:  # Avoid adding unnecessary blank pages
+            c.showPage()
+ 
+    c.save()
+
+
+def save_text_images_tables_to_pdff(pages_content, output_pdf_path,model, tokenizer):
     """Save the given text, images, and tables to a PDF file."""
     c = canvas.Canvas(output_pdf_path, pagesize=letter)
     width, height = letter
