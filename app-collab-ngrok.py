@@ -20,7 +20,7 @@ from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx2pdf import convert as docx2pdf_convert
 from pdf2docx import Converter
-import pythoncom
+# import pythoncom
 from datetime import datetime
 import json
 import random
@@ -28,6 +28,12 @@ import string
 from langdetect import detect, DetectorFactory
 from langcodes import Language
 import easyocr
+from PIL import Image, ImageDraw, ImageFont
+import numpy as np
+from io import BytesIO
+
+from pyngrok import ngrok
+
 
 app = Flask(__name__)
 CORS(app)
@@ -63,6 +69,7 @@ def extract_text_images_tables_from_pdf(pdf_path):
                 bidi_text = get_display(arabic_reshaper.reshape(text))
                 page_content["text"] = bidi_text
  
+       # Extract images with their positions
             for image in page.images:
                 try:
                     img_bbox = (image["x0"], image["top"], image["x1"], image["bottom"])
@@ -71,7 +78,13 @@ def extract_text_images_tables_from_pdf(pdf_path):
                     img_obj.save(img_data, format='PNG')
                     img_data.seek(0)
                     img_bytes = img_data.read()
-                    page_content["images"].append((img_bbox, img_bytes))
+                    # Store both position and image data
+                    page_content["images"].append({
+                        "bbox": img_bbox,
+                        "image": img_bytes,
+                        "width": image["width"],
+                        "height": image["height"]
+                    })
                 except Exception as e:
                     print(f"Error processing image: {e}")
                     continue
@@ -133,28 +146,160 @@ def clean_translation(text):
     cleaned_text = re.sub(r'\b(?:no|not|non-|, ,)\b', '', text, flags=re.IGNORECASE).strip()
     return cleaned_text
 
+def trans_image_ocr(image_bytes,model,tokenizer):
+    """Perform OCR on an image, handle both Arabic and English text with proper formatting."""
+    try:
+        reader = easyocr.Reader(['ar', 'en'])
+        img_stream = BytesIO(image_bytes)
+        image = Image.open(img_stream).convert("RGB")
+        
+        # Perform OCR
+        results = reader.readtext(np.array(image))
+        
+        # Create a drawing object
+        draw = ImageDraw.Draw(image)
+        
+        # Common substitutions for OCR mistakes
+        ocr_corrections = {
+            'R5YAL': 'ROYAL',
+            'C5MMISSI5N': 'COMMISSION',
+            'M4KK4H': 'MAKKAH',
+            'CITV': 'CITY',
+            '4NL': 'AND',
+            'HLY': 'HOLY',
+            '5': 'O',
+            '4': 'A',
+            'V': 'Y'
+        }
+        
+        all_translated_text = []
+        contains_text = False
+        
+        for bbox, text, confidence in results:
+            contains_text = True
+            
+            # Check if text contains Arabic characters
+            if any('\u0600' <= char <= '\u06FF' for char in text):
+                # Translate Arabic text to English
+                final_text = translate_arabic_to_english(model, tokenizer, [text])[0]
+            else:
+                # Apply global replacements for known OCR issues
+                for wrong, right in ocr_corrections.items():
+                    text = text.replace(wrong, right)  # Replace full patterns globally
+                
+                # Replace any remaining '5' with 'O' in the entire string
+                text = text.replace('5', 'O')
 
-def save_text_images_tables_to_pdf(pages_content, output_pdf_path, model, tokenizer): 
+                # Ensure final corrections are applied at the character level
+                corrected_text = ''
+                for char in text:
+                    corrected_text += ocr_corrections.get(char, char)
+                
+                final_text = corrected_text
+                
+                # Special case for known phrases
+                if any(phrase in final_text for phrase in ['ROYAL COMMISSION', 'MAKKAH CITY', 'HOLY SITES']):
+                    # Preserve exact casing and formatting for official names
+                    final_text = final_text.upper()
+                else:
+                    # For other English text, ensure proper capitalization
+                    final_text = ' '.join(word.capitalize() for word in final_text.split())
+            
+            all_translated_text.append(final_text)
+            
+            # Get coordinates for text replacement
+            x_min = min(p[0] for p in bbox)
+            y_min = min(p[1] for p in bbox)
+            x_max = max(p[0] for p in bbox)
+            y_max = max(p[1] for p in bbox)
+            
+            # Create white background for clarity
+            draw.rectangle([x_min, y_min, x_max, y_max], fill="white")
+            
+            # Calculate original text height to maintain font size
+            text_height = y_max - y_min
+            font_size = int(text_height * 0.62)  # Adjust this factor if needed
+            
+            # Draw text with consistent font
+            try:
+                font = ImageFont.truetype("Helvetica.ttf", font_size)
+            except:
+                font = ImageFont.load_default()
+            
+            # Draw the text
+            draw.text((x_min, y_min), final_text, fill="black", font=font)
+        
+        # Return original image if no text was found
+        if not contains_text:
+            return image_bytes, ""
+        
+        # Convert modified image back to bytes
+        output = BytesIO()
+        image.save(output, format='PNG')
+        output.seek(0)
+        
+        return output.read(), ""
+    
+    except Exception as e:
+        print(f"Error in trans_image_ocr: {e}")
+        return image_bytes, ""  #
+
+def save_text_images_tables_to_pdf(pages_content, output_pdf_path, model, tokenizer):
     """Save the given text, images, and tables to a PDF file."""
     c = canvas.Canvas(output_pdf_path, pagesize=letter)
     width, height = letter
     styles = getSampleStyleSheet()
     styleN = styles['Normal']
     left_margin, right_margin = 35, 35
-    current_font_size = 11  # Default font size
+    current_font_size = 11
     
     for page_content in pages_content:
-        y = height - 40  # Start from the top of the page
- 
-        # Draw images with minimal space between images and text
-        for img_bbox, img_bytes in page_content["images"]:
-            x0, top, x1, bottom = img_bbox
-            image_stream = BytesIO(img_bytes)
-            img_height = bottom - top
-            img_width = x1 - x0
-            c.drawImage(ImageReader(image_stream), x0, height - bottom, width=img_width, height=img_height)
-            y -= img_height + 5  # Minimal space between image and next text line
- 
+        y = height - 40
+        
+        # Process and draw images with translated text
+        for img_data in page_content["images"]:
+            # Get the original image data and position
+            img_bytes = img_data["image"]
+            img_bbox = img_data["bbox"]
+            
+            # Translate and modify the image
+            modified_img_bytes, _  = trans_image_ocr(img_bytes,model,tokenizer)
+            
+            # Draw the modified image
+            try:
+
+                                # Create PIL Image from modified bytes
+                img = Image.open(BytesIO(modified_img_bytes))
+                
+
+                # Convert PIL Image to format compatible with ReportLab
+                img_stream = BytesIO()
+                img.save(img_stream, format='PNG')
+                img_stream.seek(0)
+                img = ImageReader(img_stream)
+    
+                 # Calculate positions maintaining aspect ratio
+                x0, y0, x1, y1 = img_bbox
+                img_width = x1 - x0
+                img_height = y1 - y0
+                
+                # Convert to PDF coordinates (bottom-left origin)
+                y_draw = height - y1  # Adjust for PDF coordinate system
+                
+                # Draw image with proper positioning and scaling
+                c.drawImage(img, 
+                          x0,                    # x position 
+                          y_draw,                # y position
+                          width=img_width,       # maintain original width
+                          height=img_height,     # maintain original height
+                          mask='auto'            # handle transparency
+                )
+                y -= img_height + 15
+                
+            except Exception as e:
+                print(f"Error drawing image: {e}")
+                continue
+
         c.setFont("Helvetica", current_font_size)
         translated_text = page_content["translated_text"]
         translated_lines = translated_text.split('\n')
@@ -283,110 +428,6 @@ def save_text_images_tables_to_pdf(pages_content, output_pdf_path, model, tokeni
     c.save()
 
 
-def save_text_images_tables_to_pdff(pages_content, output_pdf_path,model, tokenizer):
-    """Save the given text, images, and tables to a PDF file."""
-    c = canvas.Canvas(output_pdf_path, pagesize=letter)
-    width, height = letter
-    styles = getSampleStyleSheet()
-    styleN = styles['Normal']
-    left_margin, right_margin = 40, 40
- 
-    for page_content in pages_content:
-        y = height - 40  # Start from the top of the page
- 
-        # Draw images with minimal space between images and text
-        for img_bbox, img_bytes in page_content["images"]:
-            x0, top, x1, bottom = img_bbox
-            image_stream = BytesIO(img_bytes)
-            img_height = bottom - top
-            img_width = x1 - x0
-            c.drawImage(ImageReader(image_stream), x0, height - bottom, width=img_width, height=img_height)
-            y -= img_height + 5  # Minimal space between image and next text line
- 
-        c.setFont("Helvetica", 11)
-        translated_text = page_content["translated_text"]
-        translated_lines = translated_text.split('\n')
- 
-        # Render translated text with bold formatting for sentences with colons
-        for line in translated_lines:
-            # Check if the line contains a colon and handle it as a full sentence if so
-            if ":" in line:
-                colon_idx = line.index(":")
-                sentence = line[:colon_idx + 1].strip().capitalize()  # Capitalize the start of the sentence
-                remaining_text = line[colon_idx + 1:].strip()
-               
-                # Draw the bold sentence with word wrapping and a single space after the colon
-                c.setFont("Helvetica-Bold", 11)
-                sentence_to_print = (sentence + ":" if sentence[-1] != ":" else sentence) + " "
-               
-                # Word wrapping for the bold sentence
-                text_offset = left_margin
-                for word in sentence_to_print.split():
-                    if text_offset + c.stringWidth(word + " ") > (width - right_margin):
-                        y -= 15  # Move to next line
-                        text_offset = left_margin
-                    c.drawString(text_offset, y, word)
-                    text_offset += c.stringWidth(word + " ")
- 
-                # Draw remaining text in normal font with word wrapping
-                c.setFont("Helvetica", 11)
-                for word in remaining_text.split():
-                    if text_offset + c.stringWidth(word + " ") > (width - right_margin):
-                        y -= 15  # Move to next line
-                        text_offset = left_margin
-                    c.drawString(text_offset, y, word)
-                    text_offset += c.stringWidth(word + " ")
- 
-            else:
-                # Draw the line as normal with word wrapping within the margins
-                text_offset = left_margin
-                for word in line.split():
-                    if text_offset + c.stringWidth(word + " ") > (width - right_margin):
-                        y -= 15  # Move to next line
-                        text_offset = left_margin
-                    c.drawString(text_offset, y, word)
-                    text_offset += c.stringWidth(word + " ")
- 
-            y -= 15  # Minimal space to the next line of text
- 
-            if y < 40:  # Create a new page if we reach the bottom of the current page
-                c.showPage()
-                y = height - 40
- 
-        # Draw tables with word wrapping in each cell
-        for table in page_content["tables"]:
-            table_style = TableStyle([
-                ('BACKGROUND', (0, 0), (-1, -1), colors.white),
-                ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 0), (-1, -1), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-                ('TOPPADDING', (0, 0), (-1, -1), 12),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('WORDWRAP', (0, 0), (-1, -1), 'CJK')
-            ])
- 
-            wrapped_table = []
-            for row in table:
-                wrapped_row = [Paragraph(cell, styleN) for cell in row]
-                wrapped_table.append(wrapped_row)
- 
-            col_widths = [(width - left_margin - right_margin) / len(wrapped_table[0])] * len(wrapped_table[0])
-            t = Table(wrapped_table, colWidths=col_widths)
-            t.setStyle(table_style)
-            w, h = t.wrap(width, y)
-            if h > y:
-                c.showPage()
-                y = height - 40
-            t.drawOn(c, left_margin, y - h)
-            y -= h + 15
- 
-        c.showPage()
- 
-    c.save()
- 
 def save_text_images_tables_to_docx(pages_content, output_docx_path):
     """Save the given text, images, and tables to a DOCX file."""
     doc = Document()
@@ -469,8 +510,10 @@ def translate_pdf(file_path, translation_id, initial_format):
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    pythoncom.CoInitialize()
+    # pythoncom.CoInitialize()
     """Handle file upload and initiate the translation process."""
+    skip_warning = request.headers.get('ngrok-skip-browser-warning')
+
     file = request.files['file']
     if file:
         temp_dir = tempfile.mkdtemp()
@@ -484,6 +527,7 @@ def upload():
  
 @app.route('/translate', methods=['POST'])
 def translate():
+    skip_warning = request.headers.get('ngrok-skip-browser-warning')
     """Start the translation process."""
     data = request.get_json()
     file_path = data.get('file_path')
@@ -501,6 +545,7 @@ def translate():
  
 @app.route('/translation_status/<translation_id>', methods=['GET'])
 def translation_status(translation_id):
+    skip_warning = request.headers.get('ngrok-skip-browser-warning')
     """Check the status of the translation."""
     translation = translations.get(translation_id)
     if translation:
@@ -509,6 +554,7 @@ def translation_status(translation_id):
  
 @app.route('/download/<translation_id>', methods=['GET'])
 def download_translated(translation_id):
+    skip_warning = request.headers.get('ngrok-skip-browser-warning')
     """Download the translated document in the initial format."""
     translation = translations.get(translation_id)
     if translation and translation['status'] == 'completed':
@@ -522,15 +568,17 @@ def download_translated(translation_id):
 @app.route('/preview/<translation_id>', methods=['GET'])
 def download_pdf(translation_id):
     """Download the translated PDF file."""
+    skip_warning = request.headers.get('ngrok-skip-browser-warning')
     translation = translations.get(translation_id)
     if translation and translation['status'] == 'completed':
         file_path = translation['file_path']
         return send_file(file_path, as_attachment=False)
     return jsonify({'message': 'File not found or translation not completed'}), 404
  
-@app.route('/translations', methods=['GET'])
+@app.route('/translations', methods=['GET'],strict_slashes=False)
 def get_translations():
     """Get the list of translations."""
+    skip_warning = request.headers.get('ngrok-skip-browser-warning')
     return jsonify(list(translations.values()))
  
 TRANSLATIONS_FILE = 'translations.json'
@@ -549,6 +597,7 @@ def save_translations(translations):
  
 @app.route('/download/<translation_id>', methods=['GET'])
 def download_file(translation_id):
+    skip_warning = request.headers.get('ngrok-skip-browser-warning')
     translation = translations.get(translation_id)
     if translation and 'file_path' in translation:
         file_path = translation['file_path']
@@ -558,6 +607,9 @@ def download_file(translation_id):
  
 translations = load_translations()
  
- 
-if __name__ == '__main__':
-    app.run(debug=False, use_reloader=False, port=5001)
+# Run ngrok for public access
+public_url = ngrok.connect(1001)
+print(f"Public URL: {public_url}")
+
+# Run Flask server
+threading.Thread(target=app.run, kwargs={"port": 1001}).start()

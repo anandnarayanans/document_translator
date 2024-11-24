@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpEventType, HttpHeaders } from '@angular/common/http';
+import { Component, OnInit, Renderer2 } from '@angular/core';
+import { HttpClient, HttpEventType } from '@angular/common/http';
 import { interval } from 'rxjs';
 import { switchMap, takeWhile, catchError } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-file-upload',
@@ -10,19 +11,17 @@ import { MatTableDataSource } from '@angular/material/table';
   styleUrls: ['./file-upload.component.css'],
 })
 export class FileUploadComponent implements OnInit {
-  private baseURL = 'https://d37b-34-82-201-6.ngrok-free.app';
-  private headers = new HttpHeaders().set('ngrok-skip-browser-warning', 'true');
-  private httpOptions = { headers: this.headers };
-
   file: File | null = null;
   uploadProgress: number = 0;
   translationProgress: number = 0;
   translatedFileUrl: string | null = null;
   translatedPDFUrl: string | null = null;
+  translationStatusInterval: any;
   translationId: string | null = null;
   isTranslating: boolean = false;
   showPreview: boolean = false;
-  initialFormat: string | null = null;
+  initialFormat: string | null = null; // Ensure initialFormat is either string or null
+  renderer: any;
   translatedFiles: any[] = [];
   displayedColumns: string[] = [
     'fileName',
@@ -43,11 +42,11 @@ export class FileUploadComponent implements OnInit {
 
   fetchTranslations() {
     this.http
-      .get<any[]>(`${this.baseURL}/translations`, this.httpOptions)
+      .get<any[]>('http://localhost:5001/translations')
       .subscribe((translations) => {
         this.translatedFiles = translations.map((translation) => ({
           ...translation,
-          download_link: `${this.baseURL}/download/${translation.translation_id}`,
+          download_link: `http://localhost:5001/download/${translation.translation_id}`,
         }));
         this.dataSource.data = this.translatedFiles;
       });
@@ -81,7 +80,7 @@ export class FileUploadComponent implements OnInit {
 
       this.http
         .post<{ message: string; file_path: string; initial_format: string }>(
-          `${this.baseURL}/upload`,
+          'http://localhost:5001/upload',
           formData,
           {
             reportProgress: true,
@@ -96,7 +95,7 @@ export class FileUploadComponent implements OnInit {
             console.log('Upload Progress:', this.uploadProgress);
           } else if (event.type === HttpEventType.Response) {
             const filePath = event.body?.file_path ?? null;
-            this.initialFormat = event.body?.initial_format ?? null;
+            this.initialFormat = event.body?.initial_format ?? null; // Handle undefined case with nullish coalescing
             console.log('File uploaded. File path:', filePath);
             if (filePath) {
               this.startTranslation(filePath);
@@ -111,12 +110,10 @@ export class FileUploadComponent implements OnInit {
     this.translatedFileUrl = null;
     this.translatedPDFUrl = null;
     this.isTranslating = true;
-
     this.http
       .post<{ message: string; translation_id: string }>(
-        `${this.baseURL}/translate`,
-        { file_path: filePath, initial_format: this.initialFormat },
-        this.httpOptions
+        'http://localhost:5001/translate',
+        { file_path: filePath, initial_format: this.initialFormat }
       )
       .subscribe((response) => {
         this.translationId = response.translation_id;
@@ -132,8 +129,7 @@ export class FileUploadComponent implements OnInit {
       .pipe(
         switchMap(() =>
           this.http.get<{ status: string; file_path?: string }>(
-            `${this.baseURL}/translation_status/${translationId}`,
-            this.httpOptions
+            `http://localhost:5001/translation_status/${translationId}`
           )
         ),
         takeWhile(
@@ -152,8 +148,8 @@ export class FileUploadComponent implements OnInit {
           console.log('Translation Progress:', this.translationProgress);
         } else if (statusResponse.status === 'completed') {
           this.translationProgress = 100;
-          this.translatedFileUrl = `${this.baseURL}/download/${translationId}`;
-          this.translatedPDFUrl = `${this.baseURL}/preview/${translationId}`;
+          this.translatedFileUrl = `http://localhost:5001/download/${translationId}`;
+          this.translatedPDFUrl = `http://localhost:5001/preview/${translationId}`;
           this.isTranslating = false;
           console.log(
             'Translation completed. Download URL:',
@@ -175,6 +171,8 @@ export class FileUploadComponent implements OnInit {
   }
 
   previewPDF() {
-    this.showPreview = true;
+    {
+      this.showPreview = true;
+    }
   }
 }

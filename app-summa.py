@@ -28,7 +28,9 @@ import string
 from langdetect import detect, DetectorFactory
 from langcodes import Language
 import easyocr
-
+from PIL import Image, ImageDraw, ImageFont
+import numpy as np
+from io import BytesIO
 app = Flask(__name__)
 CORS(app)
  # Set seed for consistent language detection
@@ -63,6 +65,7 @@ def extract_text_images_tables_from_pdf(pdf_path):
                 bidi_text = get_display(arabic_reshaper.reshape(text))
                 page_content["text"] = bidi_text
  
+       # Extract images with their positions
             for image in page.images:
                 try:
                     img_bbox = (image["x0"], image["top"], image["x1"], image["bottom"])
@@ -71,7 +74,13 @@ def extract_text_images_tables_from_pdf(pdf_path):
                     img_obj.save(img_data, format='PNG')
                     img_data.seek(0)
                     img_bytes = img_data.read()
-                    page_content["images"].append((img_bbox, img_bytes))
+                    # Store both position and image data
+                    page_content["images"].append({
+                        "bbox": img_bbox,
+                        "image": img_bytes,
+                        "width": image["width"],
+                        "height": image["height"]
+                    })
                 except Exception as e:
                     print(f"Error processing image: {e}")
                     continue
@@ -133,28 +142,149 @@ def clean_translation(text):
     cleaned_text = re.sub(r'\b(?:no|not|non-|, ,)\b', '', text, flags=re.IGNORECASE).strip()
     return cleaned_text
 
+def trans_image_ocr(image_bytes):
+    """Perform OCR on an image, handle both Arabic and English text with proper formatting."""
+    try:
+        reader = easyocr.Reader(['ar', 'en'])
+        img_stream = BytesIO(image_bytes)
+        image = Image.open(img_stream).convert("RGB")
+        
+        # Perform OCR
+        results = reader.readtext(np.array(image))
+        
+        # Create a drawing object
+        draw = ImageDraw.Draw(image)
+        
+        # Common substitutions for OCR mistakes
+        ocr_corrections = {
+            'R5YAL': 'ROYAL',
+            'C5MMISSI5N': 'COMMISSION',
+            'M4KK4H': 'MAKKAH',
+            'CITV': 'CITY',
+            '4NL': 'AND',
+            'HLY': 'HOLY',
+            '5': 'O',
+            '4': 'A',
+            'V': 'Y'
+        }
+        
+        all_translated_text = []
+        contains_text = False
+        
+        for bbox, text, confidence in results:
+            contains_text = True
+            
+            # Check if text contains Arabic characters
+            if any('\u0600' <= char <= '\u06FF' for char in text):
+                # Translate Arabic text to English
+                final_text = translate_arabic_to_english(model, tokenizer, [text])[0]
+            else:
+                # Apply global replacements for known OCR issues
+                for wrong, right in ocr_corrections.items():
+                    text = text.replace(wrong, right)  # Replace full patterns globally
+                
+                # Replace any remaining '5' with 'O' in the entire string
+                text = text.replace('5', 'O')
 
-def save_text_images_tables_to_pdf(pages_content, output_pdf_path, model, tokenizer): 
+                # Ensure final corrections are applied at the character level
+                corrected_text = ''
+                for char in text:
+                    corrected_text += ocr_corrections.get(char, char)
+                
+                final_text = corrected_text
+                
+                # Special case for known phrases
+                if any(phrase in final_text for phrase in ['ROYAL COMMISSION', 'MAKKAH CITY', 'HOLY SITES']):
+                    # Preserve exact casing and formatting for official names
+                    final_text = final_text.upper()
+                else:
+                    # For other English text, ensure proper capitalization
+                    final_text = ' '.join(word.capitalize() for word in final_text.split())
+            
+            all_translated_text.append(final_text)
+            
+            # Get coordinates for text replacement
+            x_min = min(p[0] for p in bbox)
+            y_min = min(p[1] for p in bbox)
+            x_max = max(p[0] for p in bbox)
+            y_max = max(p[1] for p in bbox)
+            
+            # Create white background for clarity
+            draw.rectangle([x_min, y_min, x_max, y_max], fill="white")
+            
+            # Calculate original text height to maintain font size
+            text_height = y_max - y_min
+            font_size = int(text_height * 0.62)  # Adjust this factor if needed
+            
+            # Draw text with consistent font
+            try:
+                font = ImageFont.truetype("Helvetica.ttf", font_size)
+            except:
+                font = ImageFont.load_default()
+            
+            # Draw the text
+            draw.text((x_min, y_min), final_text, fill="black", font=font)
+        
+        # Return original image if no text was found
+        if not contains_text:
+            return image_bytes, ""
+        
+        # Convert modified image back to bytes
+        output = BytesIO()
+        image.save(output, format='PNG')
+        output.seek(0)
+        
+        return output.read(), ""
+    
+    except Exception as e:
+        print(f"Error in trans_image_ocr: {e}")
+        return image_bytes, ""  #
+
+def save_text_images_tables_to_pdf(pages_content, output_pdf_path, model, tokenizer):
     """Save the given text, images, and tables to a PDF file."""
     c = canvas.Canvas(output_pdf_path, pagesize=letter)
     width, height = letter
     styles = getSampleStyleSheet()
     styleN = styles['Normal']
     left_margin, right_margin = 35, 35
-    current_font_size = 11  # Default font size
+    current_font_size = 11
     
     for page_content in pages_content:
-        y = height - 40  # Start from the top of the page
- 
-        # Draw images with minimal space between images and text
-        for img_bbox, img_bytes in page_content["images"]:
-            x0, top, x1, bottom = img_bbox
-            image_stream = BytesIO(img_bytes)
-            img_height = bottom - top
-            img_width = x1 - x0
-            c.drawImage(ImageReader(image_stream), x0, height - bottom, width=img_width, height=img_height)
-            y -= img_height + 5  # Minimal space between image and next text line
- 
+        y = height - 40
+        
+        # Process and draw images with translated text
+        for img_data in page_content["images"]:
+            # Get the original image data and position
+            img_bytes = img_data["image"]
+            img_bbox = img_data["bbox"]
+            
+            # Translate and modify the image
+            modified_img_bytes, _  = trans_image_ocr(img_bytes)
+            
+            # Draw the modified image
+            try:
+                img_stream = BytesIO(modified_img_bytes)
+                img = ImageReader(img_stream)
+    
+        # Use original bounding box coordinates to draw the image
+                x0, y0, x1, y1 = img_bbox
+                img_width = x1 - x0
+                img_height = y1 - y0
+                
+                # Translate PDF coordinate system (y-axis inverted)
+                y_draw = height - y1
+
+              
+                
+                # Draw the modified image
+                c.drawImage(img, x0, y_draw, width=img_width, height=img_height)
+                # c.drawImage(img, left_margin, y - img_height, width=img_width, height=img_height)
+                y -= img_height + 15
+                
+            except Exception as e:
+                print(f"Error drawing image: {e}")
+                continue
+
         c.setFont("Helvetica", current_font_size)
         translated_text = page_content["translated_text"]
         translated_lines = translated_text.split('\n')
